@@ -4,6 +4,13 @@ let currentRevealIndex = 1;    // index of the next word to reveal
 let letterRevealCount = 1;     // how many letters of that word to show
 let showLettersActive = false; // state of the Show Letters toggle
 
+// Timer state
+let timeLeft = 90;
+let timerInterval = null;
+const timerElement = document.getElementById('timer');
+const startButton = document.getElementById('start-timer-button');
+const pauseButton = document.getElementById('pause-timer-button');
+
 async function loadGameData() {
   const resp = await fetch("game.json");
   const data = await resp.json();
@@ -38,29 +45,38 @@ function renderSet() {
 }
 
 function setupButtons() {
-  document.getElementById("next-button")
-    .addEventListener("click", revealNext);
-
-  document.getElementById("back-button")
-    .addEventListener("click", goBack);
-
-  document.getElementById("show-letters-button")
-    .addEventListener("click", toggleShowLetters);
-
-  document.getElementById("show-next-letter")
-    .addEventListener("click", showNextLetter);
-
+  document.getElementById("next-button").addEventListener("click", revealNext);
+  document.getElementById("back-button").addEventListener("click", goBack);
+  document.getElementById("show-letters-button").addEventListener("click", toggleShowLetters);
+  document.getElementById("show-next-letter").addEventListener("click", showNextLetter);
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space") {
       e.preventDefault();
       revealNext();
     }
   });
+
+  // Start timer
+  startButton.addEventListener('click', () => {
+    startButton.disabled = true;
+    pauseButton.disabled = false;
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+  });
+
+  // Pause timer
+  pauseButton.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    pauseButton.disabled = true;
+    startButton.disabled = false;
+  });
 }
+
 
 function revealNext() {
   const words = sets[currentSetIndex];
   const items = document.querySelectorAll("#word-list li");
+
 
   if (currentRevealIndex < words.length) {
     // fully reveal this word
@@ -141,3 +157,25 @@ function showNextLetter() {
 
 // initialize
 loadGameData();
+
+
+function setTopText() {
+  const words = sets[currentSetIndex];
+  document.getElementById("top-text").innerText = "Connect " + words.length;
+
+}
+
+setInterval(setTopText, 1000);
+
+// Timer update logic
+function updateTimer() {
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  timerElement.textContent = `${minutes}:${seconds.toString().padStart(2,'0')}`;
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    timerElement.textContent = "Time's up!";
+    pauseButton.disabled = true;
+  }
+  timeLeft--;
+}
