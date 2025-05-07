@@ -5,11 +5,13 @@ let letterRevealCount = 1;     // how many letters of that word to show
 let showLettersActive = false; // state of the Show Letters toggle
 
 // Timer state
-let timeLeft = 90;
+const initialTime = 90;   // number of seconds to start with
+let timeLeft = initialTime;
 let timerInterval = null;
 const timerElement = document.getElementById('timer');
 const startButton = document.getElementById('start-timer-button');
 const pauseButton = document.getElementById('pause-timer-button');
+const resetButton   = document.getElementById('reset-timer-button');
 
 async function loadGameData() {
   const resp = await fetch("game.json");
@@ -69,6 +71,14 @@ function setupButtons() {
     clearInterval(timerInterval);
     pauseButton.disabled = true;
     startButton.disabled = false;
+  });
+
+  resetButton.addEventListener('click', () => {
+    clearInterval(timerInterval);      // stop any running countdown
+    timeLeft = initialTime;            // restore to the starting value
+    updateTimer();                     // refresh the display
+    pauseButton.disabled = true;       // back to paused state
+    startButton.disabled = false;      // allow restarting
   });
 }
 
@@ -157,7 +167,6 @@ function showNextLetter() {
 
 // initialize
 loadGameData();
-
 
 function setTopText() {
   const words = sets[currentSetIndex];
